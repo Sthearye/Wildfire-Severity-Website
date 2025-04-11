@@ -1,8 +1,7 @@
 from dash import html, dcc, register_page, callback, Output, Input
 import dash_bootstrap_components as dbc
 
-register_page(__name__, path="/")
-
+register_page(__name__, path="/") 
 # Warm color palette
 colors = {
     "background": "#fff9f2",  # Cream
@@ -11,6 +10,7 @@ colors = {
     "secondary": "#feb47b",   # Light orange
     "text": "#5a3e36"        # Brown
 }
+
 
 layout = dbc.Container([
     html.H1("Home Page", className="display-4 text-center my-4", style={"color": colors["primary"]}),

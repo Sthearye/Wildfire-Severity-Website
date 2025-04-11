@@ -1,8 +1,12 @@
 dash
+dash-bootstrap-components
 plotly
 pandas
+numpy
 Flask
 gunicorn
 google-cloud-storage
-dash-bootstrap-components
-numpy
+scikit-learn
+xgboost
+matplotlib
+seaborn
