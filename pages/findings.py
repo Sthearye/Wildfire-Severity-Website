@@ -1,57 +1,69 @@
-from dash import html, dcc, register_page
+from dash import html, register_page
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
 import numpy as np
+from visualizations.wildfire_trends import create_county_trends_plot
+from visualizations.ca_choropleth import create_wildfire_choropleth
+from visualizations.acres_by_county import create_acres_bar_chart
+from visualizations.correlation_heatmap import create_correlation_heatmap
 
 register_page(__name__, path="/findings")
 
-COLOR_SEQUENCE = ["#9F5244", "#D05F33", "#FF7621", "#FF9818", "#FEB504"]
-
-# Sample data
-np.random.seed(42)
-data = pd.DataFrame({
-    "Category": ["A", "B", "C", "D", "E"],
-    "Value": np.random.randint(10, 100, 5),
-    "Impact": np.random.uniform(0.5, 1.5, 5)
-})
-
-# Create visualizations with custom palette
-fig1 = px.bar(data, x="Category", y="Value", 
-             color="Category", color_discrete_sequence=COLOR_SEQUENCE,
-             title="Key Metrics by Category")
-
-fig2 = px.scatter(data, x="Value", y="Impact", 
-                 color="Category", size="Value",
-                 color_discrete_sequence=COLOR_SEQUENCE,
-                 title="Value vs Impact Correlation")
+COLORS = {
+    "header": "#D05F33",
+    "highlight": "#FF7621",
+    "card_border": "#FF7621"
+}
 
 layout = dbc.Container([
     dbc.Card([
-        dbc.CardHeader("Major Findings", 
-                      style={"background": "#16060C", 
-                             "color": "#FEB504"}),
+        dbc.CardHeader(
+            "Wildfire Findings Dashboard",
+            className="h4",
+            style={"background": COLORS["header"], "color": "white"}
+        ),
+        
         dbc.CardBody([
-            dbc.Tabs([
-                dbc.Tab(
-                    dcc.Graph(figure=fig1),
-                    label="Metrics",
-                    tabClassName="border-top border-start border-end",
-                    label_style={"color": "#D05F33", "fontWeight": "bold"}
-                ),
-                dbc.Tab(
-                    dcc.Graph(figure=fig2),
-                    label="Correlations",
-                    label_style={"color": "#D05F33", "fontWeight": "bold"}
-                )
-            ]),
-            
-            html.Div([
-                html.H5("Key Insights:", style={"color": "#FF7621"}),
-                html.P("Our analysis revealed...", style={"color": "#16060C"})
-            ], className="mt-4 p-3", 
-               style={"background": "#FF981820",  # 20% opacity
-                      "borderLeft": f"4px solid {COLOR_SEQUENCE[1]}"})
-        ], style={"background": "#FFFFFF"})
-    ], className="mt-4 shadow-lg")
-], style={"background": "#16060C10"})
+            # Geographic visualization
+            dbc.Row([
+                dbc.Col([
+                    html.H3("Geographic Distribution", style={"color": COLORS["highlight"]}),
+                    create_wildfire_choropleth()
+                ])
+            ], className="mb-4"),
+
+            # Acres burned visualization
+            dbc.Row([
+                dbc.Col([
+                    html.H3("Acres Burned by County", style={"color": COLORS["highlight"]}),
+                    create_acres_bar_chart()
+                ])
+            ], className="mb-4"),
+
+            # Correlation heatmap
+            dbc.Row([
+                dbc.Col([
+                    html.H3("Feature Correlations", style={"color": COLORS["highlight"]}),
+                    create_correlation_heatmap(),
+                    html.Div([
+                        html.P("Key observations:", className="mt-2"),
+                        html.Ul([
+                            html.Li("Temperature shows strong positive correlation with fire acreage"),
+                            html.Li("Humidity has negative correlation with fire severity"),
+                            html.Li("Wind speed shows moderate positive correlation")
+                        ])
+                    ], className="p-3 bg-light rounded mt-2")
+                ])
+            ], className="mb-4"),
+
+            # Temporal trends
+            dbc.Row([
+                dbc.Col([
+                    html.H3("Monthly Trends", style={"color": COLORS["highlight"]}),
+                    create_county_trends_plot()
+                ])
+            ])
+        ], style={"padding": "20px"})
+    ], className="mt-4 shadow", style={"borderTop": f"3px solid {COLORS['card_border']}"})
+], fluid=True)
