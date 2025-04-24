@@ -1,73 +1,133 @@
-from dash import html, register_page
+from dash import html, dcc, register_page
 import dash_bootstrap_components as dbc
+from dash_iconify import DashIconify
 
 register_page(__name__, path="/objectives")
 
+# Enhanced color palette
 COLORS = {
-    "bg": "#16060C10",  # Dark with 10% opacity
-    "card": f"linear-gradient(135deg, #FFFFFF 0%, #F8F8F8 100%)",
-    "header": "#9F5244",
+    "bg": "#FFF8F0",  # Light cream background
+    "card_bg": "#FFFFFF",
+    "header": "linear-gradient(135deg, #9F5244 0%, #D05F33 100%)",  # Gradient header
     "text": "#16060C",
-    "accent": "#D05F33"
+    "accent": "#D05F33",
+    "secondary": "#E88D67",  # Secondary accent
+    "light_accent": "#FFE8D6"  # Light accent for highlights
+}
+
+# Icons for each objective
+ICONS = {
+    "model": "carbon:model-alt",
+    "explore": "carbon:chart-relationship",
+    "ml": "carbon:machine-learning-model",
+    "socio": "carbon:user-data",
+    "insights": "carbon:data-vis-4"
 }
 
 layout = dbc.Container([
+    # Title with icon
+    html.Div([
+        html.Div([
+            DashIconify(icon="carbon:fire", width=40, height=40, color="white", style={"marginRight": "15px"}),
+            html.H2("Project Objectives", className="mb-0 d-inline")
+        ], className="d-flex align-items-center"),
+    ], className="text-white p-4 rounded-top", style={"background": COLORS["header"]}),
+    
+    # Main card
     dbc.Card([
-        dbc.CardHeader("Project Objectives", 
-                      className="h4",
-                      style={"background": COLORS["header"], 
-                             "color": "white"}),
-
         dbc.CardBody([
-
+            # Objectives list with icons
             html.Ul([
-                html.Li("Analyze key patterns and trends within wildfire severity data.",
-                        style={"color": COLORS["text"], 
-                               "borderLeft": f"4px solid {COLORS['accent']}",
-                               "padding": "8px",
-                               "marginBottom": "8px"}),
+                html.Li([
+                    html.Div([
+                        DashIconify(icon=ICONS["model"], width=28, height=28, color=COLORS["accent"], 
+                                   style={"marginRight": "15px", "minWidth": "28px"}),
+                        html.Span("Develop predictive models to estimate wildfire severity in California using historical fire data and environmental indicators.")
+                    ], className="d-flex align-items-start")
+                ], className="mb-4 objective-item", 
+                   style={"color": COLORS["text"], "borderLeft": f"4px solid {COLORS['accent']}", 
+                          "padding": "12px 15px", "backgroundColor": COLORS["light_accent"], "borderRadius": "0 8px 8px 0",
+                          "transition": "all 0.3s ease", "boxShadow": "0 2px 5px rgba(0,0,0,0.05)"}),
 
-                html.Li("Identify significant correlations between environmental factors and wildfire spread.",
-                        style={"color": COLORS["text"],
-                               "borderLeft": f"4px solid {COLORS['accent']}",
-                               "padding": "8px",
-                               "marginBottom": "8px"}),
+                html.Li([
+                    html.Div([
+                        DashIconify(icon=ICONS["explore"], width=28, height=28, color=COLORS["accent"], 
+                                   style={"marginRight": "15px", "minWidth": "28px"}),
+                        html.Span("Explore correlations between wildfire severity and factors such as temperature, wind speed, soil moisture, precipitation, humidity, and seasonality.")
+                    ], className="d-flex align-items-start")
+                ], className="mb-4 objective-item", 
+                   style={"color": COLORS["text"], "borderLeft": f"4px solid {COLORS['accent']}", 
+                          "padding": "12px 15px", "backgroundColor": COLORS["light_accent"], "borderRadius": "0 8px 8px 0",
+                          "transition": "all 0.3s ease", "boxShadow": "0 2px 5px rgba(0,0,0,0.05)"}),
 
-                html.Li("Apply machine learning models to predict wildfire severity based on climate and population data.",
-                        style={"color": COLORS["text"],
-                               "borderLeft": f"4px solid {COLORS['accent']}",
-                               "padding": "8px",
-                               "marginBottom": "8px"}),
+                html.Li([
+                    html.Div([
+                        DashIconify(icon=ICONS["ml"], width=28, height=28, color=COLORS["accent"], 
+                                   style={"marginRight": "15px", "minWidth": "28px"}),
+                        html.Span("Apply machine learning techniques—such as Random Forests and Ridge Regression—to predict the logarithmic scale of acres burned during wildfires.")
+                    ], className="d-flex align-items-start")
+                ], className="mb-4 objective-item", 
+                   style={"color": COLORS["text"], "borderLeft": f"4px solid {COLORS['accent']}", 
+                          "padding": "12px 15px", "backgroundColor": COLORS["light_accent"], "borderRadius": "0 8px 8px 0",
+                          "transition": "all 0.3s ease", "boxShadow": "0 2px 5px rgba(0,0,0,0.05)"}),
 
-                html.Li("Determine the influence of weather patterns, drought conditions, and temperature fluctuations.",
-                        style={"color": COLORS["text"],
-                               "borderLeft": f"4px solid {COLORS['accent']}",
-                               "padding": "8px",
-                               "marginBottom": "8px"}),
+                html.Li([
+                    html.Div([
+                        DashIconify(icon=ICONS["socio"], width=28, height=28, color=COLORS["accent"], 
+                                   style={"marginRight": "15px", "minWidth": "28px"}),
+                        html.Span("Incorporate socio-economic indicators (e.g. poverty levels, dry well counts, powerline density) to understand human vulnerability and regional disparities in wildfire impact.")
+                    ], className="d-flex align-items-start")
+                ], className="mb-4 objective-item", 
+                   style={"color": COLORS["text"], "borderLeft": f"4px solid {COLORS['accent']}", 
+                          "padding": "12px 15px", "backgroundColor": COLORS["light_accent"], "borderRadius": "0 8px 8px 0",
+                          "transition": "all 0.3s ease", "boxShadow": "0 2px 5px rgba(0,0,0,0.05)"}),
 
-                html.Li("Provide actionable insights for wildfire prevention, preparedness, and resource allocation.",
-                        style={"color": COLORS["text"],
-                               "borderLeft": f"4px solid {COLORS['accent']}",
-                               "padding": "8px",
-                               "marginBottom": "8px"}),
+                html.Li([
+                    html.Div([
+                        DashIconify(icon=ICONS["insights"], width=28, height=28, color=COLORS["accent"], 
+                                   style={"marginRight": "15px", "minWidth": "28px"}),
+                        html.Span("Provide data-driven insights to support fire prevention, preparedness, and equitable resource allocation for emergency response.")
+                    ], className="d-flex align-items-start")
+                ], className="mb-4 objective-item", 
+                   style={"color": COLORS["text"], "borderLeft": f"4px solid {COLORS['accent']}", 
+                          "padding": "12px 15px", "backgroundColor": COLORS["light_accent"], "borderRadius": "0 8px 8px 0",
+                          "transition": "all 0.3s ease", "boxShadow": "0 2px 5px rgba(0,0,0,0.05)"}),
 
             ], className="list-unstyled"),
 
-            html.Hr(style={"borderTop": f"2px solid {COLORS['accent']}"}),
+            # Divider with icon
+            html.Div([
+                html.Hr(className="my-4", style={"borderTop": f"2px solid {COLORS['secondary']}"}),
+                html.Div([
+                    DashIconify(icon="carbon:document", width=24, height=24, color=COLORS["accent"]),
+                    html.H5("Project Summary", className="ml-2 mb-0")
+                ], className="d-flex align-items-center mb-3"),
+            ]),
 
-            html.P(
-                "The objective of this project is to leverage environmental, climatic, and demographic data "
-                "to analyze the key drivers of wildfire severity across California counties. Through statistical "
-                "analysis and machine learning models, this project aims to identify significant patterns and "
-                "correlations between wildfire size and various factors such as temperature, humidity, wind speed, "
-                "drought levels, and population density. The ultimate goal is to provide actionable insights "
-                "that can assist in risk assessment, resource allocation, and wildfire prevention strategies.",
-                className="lead",
-                style={"color": COLORS["accent"]}
-            )
+            # Summary section with improved styling
+            html.Div([
+                html.P(
+                    "This project aims to uncover the key environmental and socio-economic drivers of wildfire severity across California. "
+                    "By using machine learning and statistical analysis, we will assess how climate variables—like drought, temperature, humidity, and wind—interact with social factors, such as income level and infrastructure access, to influence fire outcomes. "
+                    "The ultimate objective is to build interpretable models that not only forecast wildfire damage but also inform policy makers, fire management agencies, and local communities about where resources and interventions are most needed.",
+                    className="mb-0",
+                    style={
+                        "color": COLORS["text"], 
+                        "lineHeight": "1.6",
+                        "fontSize": "1.05rem",
+                        "fontWeight": "400"
+                    }
+                )
+            ], className="p-4 rounded", style={"backgroundColor": COLORS["light_accent"], "border": f"1px solid {COLORS['secondary']}"}),
+            
+        ], style={"background": COLORS["card_bg"], "padding": "25px"})
 
-        ], style={"background": COLORS["card"]})
+    ], className="shadow-lg border-0"),
+    
+    # Footer with attribution
+    html.Div([
+        html.Small("California Wildfire Severity Prediction Project", className="text-muted")
+    ], className="text-center mt-4 mb-2"),
 
-    ], className="mt-4 shadow-lg", style={"border": f"1px solid {COLORS['accent']}"}),
+], fluid=True, className="py-4", style={"background": COLORS["bg"], "minHeight": "100vh"})
 
-], style={"background": COLORS["bg"], "minHeight": "100vh"})

@@ -76,20 +76,57 @@ def run_linear_model():
     plt.close()
     buf2.seek(0)
     scatter_img = base64.b64encode(buf2.read()).decode("utf-8")
-
+    
+    metrics_container_style = {
+        'display': 'flex',
+        'gap': '20px',
+        'marginBottom': '25px'
+    }
+    
+    metric_card_style = {
+        'flex': '1',
+        'backgroundColor': '#f8f9fa',
+        'borderRadius': '8px',
+        'padding': '15px',
+        'boxShadow': '0 2px 4px rgba(0,0,0,0.05)'
+    }
+    
+    metric_title_style = {
+        'fontSize': '14px',
+        'color': '#6c757d',
+        'marginBottom': '8px'
+    }
+    
+    metric_value_style = {
+        'fontSize': '24px',
+        'fontWeight': 'bold',
+        'color': '#2c3e50'
+    }
+    
+    dashboard_title_style = {
+        'color': '#2c3e50',
+        'textAlign': 'center',
+        'marginBottom': '30px',
+        'fontWeight': '600',
+        'borderBottom': '2px solid #ecf0f1',
+        'paddingBottom': '15px'
+    }
     # Return full dashboard section
     return html.Div([
         html.H3("🔥 Wildfire Severity Prediction (Linear Regression - Log Transformed)"),
-        html.P(
-        "This model applies multiple linear regression to predict the logarithm of acres burned in wildfire incidents. "
-        "It assumes a linear relationship between wildfire size and features such as temperature, precipitation, wind, "
-        "and seasonal timing. The log transformation is used to reduce skewness in the target variable and stabilize variance. "
-        "Although linear regression is simple and interpretable, it may struggle to capture the complex, nonlinear dynamics "
-        "of wildfire behavior without more advanced techniques or richer data.",
-        style={"marginBottom": "20px"}
-    ),
-        html.P(f"Mean Squared Error (Log Scale): {mse:.4f}"),
-        html.P(f"R-squared Score (Log Scale): {r2:.4f}"),
+
+        html.Div([
+        html.Div([
+            html.Div("Mean Squared Error (Log Scale)", style=metric_title_style),
+            html.Div(f"{mse:.4f}", style=metric_value_style)
+        ], style=metric_card_style),
+        
+        html.Div([
+            html.Div("R² Score", style=metric_title_style),
+            html.Div(f"{r2:.4f}", style=metric_value_style)
+        ], style=metric_card_style)
+        ], style=metrics_container_style),
+        
 
         html.Hr(),
         html.H4("📉 Q-Q Plot of Residuals"),
@@ -103,5 +140,13 @@ def run_linear_model():
 
         html.Hr(),
         html.H4("📈 Actual vs Predicted (Log-Transformed)"),
+        html.P(
+            "This model applies multiple linear regression to predict the logarithm of acres burned in wildfire incidents. "
+            "It assumes a linear relationship between wildfire size and features such as temperature, precipitation, wind, "
+            "and seasonal timing. The log transformation is used to reduce skewness in the target variable and stabilize variance. "
+            "Although linear regression is simple and interpretable, it may struggle to capture the complex, nonlinear dynamics "
+            "of wildfire behavior without more advanced techniques or richer data.",
+        style={"marginBottom": "20px"}
+    ),
         html.Img(src=f"data:image/png;base64,{scatter_img}", style={"width": "70%", "margin": "auto", "display": "block"})
     ])
