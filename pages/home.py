@@ -1,69 +1,104 @@
 from dash import html, dcc, register_page, callback, Output, Input
 import dash_bootstrap_components as dbc
 
-register_page(__name__, path="/") 
-# Warm color palette
+register_page(__name__, path="/")
+
+# Wildfire-themed color palette
 colors = {
-    "background": "#fff9f2",  # Cream
-    "card": "#ffffff",        # White
-    "primary": "#ff7e5f",     # Coral
-    "secondary": "#feb47b",   # Light orange
-    "text": "#5a3e36"        # Brown
+    "background": "#fff9f2",  # Cream (soft background)
+    "card": "#ffffff",        # White (card backgrounds)
+    "primary": "#e76f51",     # Burnt orange (accent)
+    "secondary": "#f4a261",   # Sandy orange (secondary)
+    "accent": "#2a9d8f",      # Teal (for contrast)
+    "text": "#5a3e36",       # Dark brown (text)
+    "alert": "#e9c46a"        # Golden yellow (highlights)
 }
 
+# Hero section with project title and subtitle
+hero = dbc.Row([
+    dbc.Col([
+        html.H1("California Wildfire Severity Prediction", 
+                className="display-4 fw-bold mb-3", 
+                style={"color": colors["primary"]}),
+        html.P("An approach utilizing historical and environmental data to predict the severity of wildfires.", 
+              className="lead",
+              style={"color": colors["text"]}),
+        dbc.Button("Explore Our Findings →", 
+                   id="explore-btn", 
+                   href="/objectives",  # Link to your objectives page
+                   color="primary",
+                   className="mt-3",
+                   style={"backgroundColor": colors["primary"]})
+    ], className="text-center py-5")
+], style={"background": f"linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url('https://images.unsplash.com/photo-1516054575922-f0b8eeadec1a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')",
+          "backgroundSize": "cover",
+          "borderRadius": "10px"})
 
+# Project summary card
+summary_card = dbc.Card([
+    dbc.CardHeader("Why This Matters", 
+                  style={"backgroundColor": colors["secondary"], "color": "white"}),
+    dbc.CardBody([
+        html.P("Since the 1980s, there has been a significant rise in both the size and intensity of wildfires in California. Since 2000, fifteen of California's 20 largest wildfires have happened, and since 2015, ten of the most damaging and expensive fires affecting life and property in the state have taken place.", 
+              style={"color": colors["text"]}),
+        html.P("Our initiative uses machine learning methods to forecast wildfire intensity—not only incidence—by analyzing environmental factors such as temperature, humidity, and soil moisture", 
+              className="mt-3",
+              style={"color": colors["text"]}),
+    ])
+], className="shadow my-4")
+
+# Key features cards
+features = dbc.Row([
+    dbc.Col([
+        dbc.Card([
+            dbc.CardHeader("Severity Prediction", style={"backgroundColor": colors["secondary"], "color": "white"}),
+            dbc.CardBody([
+                html.P("Go beyond binary 'fire/no fire' models to predict how destructive a wildfire will be.", 
+                      style={"color": colors["text"]}),
+            ])
+        ], className="h-100 shadow-sm")
+    ], md=4),
+    dbc.Col([
+        dbc.Card([
+            dbc.CardHeader("Environmental Factors", style={"backgroundColor": colors["secondary"], "color": "white"}),
+            dbc.CardBody([
+                html.P("Analyze 10+ variables: temperature, humidity, wind speed, soil moisture, and more.", 
+                      style={"color": colors["text"]}),
+            ])
+        ], className="h-100 shadow-sm")
+    ], md=4),
+    dbc.Col([
+        dbc.Card([
+            dbc.CardHeader("Actionable Insights", style={"backgroundColor": colors["secondary"], "color": "white"}),
+            dbc.CardBody([
+                html.P("Assist fire departments in distributing resources and aiding communities in getting ready for high-risk situations.", 
+                      style={"color": colors["text"]}),
+            ])
+        ], className="h-100 shadow-sm")
+    ], md=4),
+], className="my-4")
+
+# Footer
+footer = html.Footer([
+    html.Hr(),
+    html.P("CS 163 Project | Sokuntheary Em & Devin Chau", 
+          className="text-center",
+          style={"color": colors["text"]})
+], className="mt-5")
+
+# Combine all components
 layout = dbc.Container([
-    html.H1("Home Page", className="display-4 text-center my-4", style={"color": colors["primary"]}),
-    
-    dbc.Card([
-        dbc.CardBody([
-            html.P("Welcome to our colorful dashboard!", 
-                  className="lead",
-                  style={"color": colors["text"]}),
-            dbc.Button("Click Me", id="home-btn", 
-                       color="primary", 
-                       className="mt-3",
-                       style={"backgroundColor": colors["primary"]}),
-            html.Div(id="home-output", className="mt-3")
-        ])
-    ], className="shadow", style={"backgroundColor": colors["card"]}),
-    
-    dbc.Row([
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader("Feature 1", style={"backgroundColor": colors["secondary"], "color": "white"}),
-                dbc.CardBody([
-                    html.P("Enjoy the warm color scheme!", style={"color": colors["text"]}),
-                ])
-            ], className="mt-4 shadow-sm")
-        ], md=4),
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader("Feature 2", style={"backgroundColor": colors["secondary"], "color": "white"}),
-                dbc.CardBody([
-                    html.P("All colors are carefully coordinated.", style={"color": colors["text"]}),
-                ])
-            ], className="mt-4 shadow-sm")
-        ], md=4),
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader("Feature 3", style={"backgroundColor": colors["secondary"], "color": "white"}),
-                dbc.CardBody([
-                    html.P("Hover effects would look great here!", style={"color": colors["text"]}),
-                ])
-            ], className="mt-4 shadow-sm")
-        ], md=4),
-    ], className="mt-4")
+    hero,
+    summary_card,
+    features,
+    footer
 ], style={"backgroundColor": colors["background"], "padding": "2rem"})
 
+# Optional callback for interactivity (e.g., a "Learn More" button)
 @callback(
     Output("home-output", "children"),
-    Input("home-btn", "n_clicks"),
+    Input("explore-btn", "n_clicks"),
     prevent_initial_call=True
 )
 def update_output(n_clicks):
-    return dbc.Alert(
-        f"Button clicked {n_clicks} times!",
-        color="primary",
-        style={"backgroundColor": colors["primary"], "color": "white"}
-    )
+    return dcc.Location(pathname="/objectives", id="redirect")  # Redirect to objectives page

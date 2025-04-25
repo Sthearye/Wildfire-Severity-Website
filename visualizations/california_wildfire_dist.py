@@ -1,3 +1,4 @@
+import pandas as pd
 import plotly.express as px
 
 def create_ca_wildfire_map(df):
@@ -7,13 +8,17 @@ def create_ca_wildfire_map(df):
         (df['incident_longitude'].between(-124.5, -114.0))
     ].copy()
 
-    # Create the base map
+    # Extract year from the Date
+    ca_df['Year'] = pd.to_datetime(ca_df['Date']).dt.year
+
+    # Create the animated map
     fig = px.scatter_geo(
         ca_df,
         lat='incident_latitude',
         lon='incident_longitude',
         size='incident_acres_burned',
         color='incident_acres_burned',
+        animation_frame='Year',
         hover_name='County',
         hover_data={
             'Date': '|%B %d, %Y',
@@ -23,42 +28,42 @@ def create_ca_wildfire_map(df):
             'incident_acres_burned': False
         },
         scope='north america',
-        title='California Wildfire Distribution and Severity',
+        title='California Wildfire Distribution and Severity Over Time',
         color_continuous_scale='OrRd',
         projection='albers usa',
-        center={'lat': 36.7783, 'lon': -119.4179},  # Center on California
+        center={'lat': 36.7783, 'lon': -119.4179},
         width=1000,
         height=800,
         labels={'incident_acres_burned': 'Acres Burned'}
     )
 
-    # Configure geographic boundaries
+    # Geographic config
     fig.update_geos(
         visible=True,
         resolution=50,
-        lataxis_range=[32, 42],  # California latitude range
-        lonaxis_range=[-124, -114],  # California longitude range
-        showsubunits=True,  # Show county borders
-        subunitcolor='rgba(0,0,0,0.2)',  # Light borders
+        lataxis_range=[32, 42],
+        lonaxis_range=[-124, -114],
+        showsubunits=True,
+        subunitcolor='rgba(0,0,0,0.2)',
         landcolor='lightgray',
         oceancolor='lightblue',
         coastlinewidth=1.5
     )
 
-    # Configure marker appearance
+    # Marker scaling
     max_size = ca_df['incident_acres_burned'].max()
     fig.update_traces(
         marker=dict(
-            sizeref=2. * max_size / (40.**2),  # Scale marker sizes
-            sizemin=4,  # Minimum marker size
-            sizemode='area',  # Scale by area
+            sizeref=2. * max_size / (40.**2),
+            sizemin=4,
+            sizemode='area',
             line=dict(width=0.2, color='DarkSlateGrey'),
-            opacity=0.7  # Slightly transparent for better visibility
+            opacity=0.7
         ),
         selector=dict(type='scattergeo')
     )
 
-    # Update layout for better presentation
+    # Update layout for smooth animation and readable year
     fig.update_layout(
         margin={"r": 0, "t": 60, "l": 0, "b": 0},
         geo=dict(
@@ -74,8 +79,48 @@ def create_ca_wildfire_map(df):
             thickness=20,
             len=0.75
         ),
-        title_x=0.5,  # Center the title
-        title_font_size=20
+        title_x=0.5,
+        title_font_size=20,
+        updatemenus=[{
+            "buttons": [
+                {
+                    "args": [None, {
+                        "frame": {"duration": 1200, "redraw": True},
+                        "fromcurrent": True,
+                        "transition": {"duration": 800, "easing": "linear"}
+                    }],
+                    "label": "Play",
+                    "method": "animate"
+                },
+                {
+                    "args": [[None], {
+                        "frame": {"duration": 0, "redraw": False},
+                        "mode": "immediate",
+                        "transition": {"duration": 0}
+                    }],
+                    "label": "Pause",
+                    "method": "animate"
+                }
+            ],
+            "direction": "left",
+            "pad": {"r": 10, "t": 87},
+            "showactive": False,
+            "type": "buttons",
+            "x": 0.1,
+            "xanchor": "right",
+            "y": 0,
+            "yanchor": "top"
+        }],
+        sliders=[{
+            "currentvalue": {
+                "visible": True,
+                "prefix": "Year: ",
+                "xanchor": "right",
+                "font": {"size": 20, "color": "#333"}
+            },
+            "transition": {"duration": 500},
+            "pad": {"b": 10},
+        }]
     )
 
     return fig
