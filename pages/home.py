@@ -47,6 +47,32 @@ summary_card = dbc.Card([
     ])
 ], className="shadow my-4")
 
+# Image gallery section
+image_gallery = dbc.Row([
+    dbc.Col([
+        html.H2("", className="text-center mb-4", style={"color": colors["primary"]}),
+        dbc.Row([
+            dbc.Col([
+                html.Img(
+                    src="/assets/38A06FAD-787A-4C6E-8EAF7961B4A15286_source.png",
+                    className="img-fluid rounded shadow",
+                    style={"maxHeight": "400px", "width": "100%", "objectFit": "cover"}
+                ),
+                html.P("", className="text-center mt-2", style={"color": colors["text"]})
+            ], md=6, className="mb-4"),
+            
+            dbc.Col([
+                html.Img(
+                    src="/assets/merlin_176700381_709524cd-fbfe-499c-af77-596f80821067-superJumbo.png",
+                    className="img-fluid rounded shadow",
+                    style={"maxHeight": "400px", "width": "100%", "objectFit": "cover"}
+                ),
+                html.P("", className="text-center mt-2", style={"color": colors["text"]})
+            ], md=6, className="mb-4")
+        ])
+    ])
+], className="my-5")
+
 # Key features cards
 features = dbc.Row([
     dbc.Col([
@@ -90,6 +116,7 @@ footer = html.Footer([
 layout = dbc.Container([
     hero,
     summary_card,
+    image_gallery,  # Added the image gallery here
     features,
     footer
 ], style={"backgroundColor": colors["background"], "padding": "2rem"})
