@@ -295,21 +295,29 @@ def run_xgboost_model():
             }, children=[
                 html.Ul([
                     html.Li([
-                        html.Strong("Log-space MSE:"), " Measures average squared error between predicted and actual values on the log scale. Lower is better."
+                        html.Strong("Log-space MSE:"), " Measures the average squared difference between predicted and actual values of the log-transformed acres burned. ",
+                        "Because it’s on the log scale, this value penalizes large proportional differences rather than absolute ones. A lower value means more stable predictions across the range of fire sizes."
                     ]),
                     html.Li([
-                        html.Strong("Log-space R² Score:"), " Indicates how much variance in log(acres_burned) is explained by the model. 1 is perfect, 0 means no predictive power."
+                        html.Strong("Log-space R² Score:"), " Indicates the proportion of variance in log(acres_burned) that is explained by the model. ",
+                        "A score close to 1 means the model fits the data well; a score near 0 means the model performs no better than simply predicting the mean. ",
+                        "In this case, an R² of ~0.04 shows that the linear model captures very little of the underlying pattern, even after transformation."
                     ]),
                     html.Li([
-                        html.Strong("Raw-space MSE:"), " Squared error after reversing the log transformation. Larger fires disproportionately affect this value."
+                        html.Strong("Raw-space MSE:"), " This is the Mean Squared Error computed after reversing the log transformation (i.e., using actual acre values). ",
+                        "This metric is sensitive to large fires and will be heavily skewed by outliers. It provides a direct sense of how far off predictions are in the real-world scale, but may exaggerate performance issues."
                     ]),
                     html.Li([
-                        html.Strong("Raw-space MAE:"), " Average absolute error in predicted fire size (in acres). Easier to interpret than MSE."
+                        html.Strong("Raw-space MAE:"), " The Mean Absolute Error in predicted fire size (in acres), without squaring errors. ",
+                        "This is more interpretable and robust to outliers than MSE, especially helpful when communicating real-world error ranges to stakeholders."
                     ]),
                     html.Li([
-                        html.Strong("Raw-space R² Score:"), " Reflects how much variance in actual burned acres is explained. A score near 0 suggests limited real-world utility."
+                        html.Strong("Raw-space R² Score:"), " Reflects how much variance in the actual acres burned (not log-transformed) is explained by the model. ",
+                        "Because fire sizes follow a heavy-tailed distribution, R² in raw space often suffers when predictions fail to capture large-scale events. ",
+                        "A near-zero score here implies that the model doesn't generalize well to true fire sizes."
                     ])
                 ], style={"lineHeight": "1.8", "fontSize": "15px", "color": "#555", "paddingLeft": "20px"})
             ])
+
         ])
     ])

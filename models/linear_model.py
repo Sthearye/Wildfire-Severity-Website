@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.stats as stats
 import seaborn as sns
 import io
 import base64
@@ -8,7 +9,6 @@ from dash import html
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
-import scipy.stats as stats
 
 def run_linear_model():
     df = pd.read_csv('datasets/new_merged_df.csv')
@@ -52,17 +52,6 @@ def run_linear_model():
     mse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
 
-    # --- Q-Q Plot ---
-    fig1, ax1 = plt.subplots(figsize=(6, 5))
-    stats.probplot(residuals, dist="norm", plot=ax1)
-    ax1.set_title("Q-Q Plot of Residuals")
-    buf1 = io.BytesIO()
-    plt.tight_layout()
-    plt.savefig(buf1, format="png")
-    plt.close()
-    buf1.seek(0)
-    qq_img = base64.b64encode(buf1.read()).decode("utf-8")
-
     # --- Actual vs Predicted Plot ---
     fig2, ax2 = plt.subplots(figsize=(6, 5))
     ax2.scatter(y_test, y_pred, alpha=0.5)
@@ -102,51 +91,79 @@ def run_linear_model():
         'fontWeight': 'bold',
         'color': '#2c3e50'
     }
-    
-    dashboard_title_style = {
-        'color': '#2c3e50',
-        'textAlign': 'center',
-        'marginBottom': '30px',
-        'fontWeight': '600',
-        'borderBottom': '2px solid #ecf0f1',
-        'paddingBottom': '15px'
-    }
-    # Return full dashboard section
+
     return html.Div([
         html.H3("🔥 Wildfire Severity Prediction (Linear Regression - Log Transformed)"),
 
         html.Div([
-        html.Div([
-            html.Div("Mean Squared Error (Log Scale)", style=metric_title_style),
-            html.Div(f"{mse:.4f}", style=metric_value_style)
-        ], style=metric_card_style),
-        
-        html.Div([
-            html.Div("R² Score", style=metric_title_style),
-            html.Div(f"{r2:.4f}", style=metric_value_style)
-        ], style=metric_card_style)
-        ], style=metrics_container_style),
-        
+            html.Div([
+                html.Div("Mean Squared Error (Log Scale)", style=metric_title_style),
+                html.Div(f"{mse:.4f}", style=metric_value_style)
+            ], style=metric_card_style),
 
-        html.Hr(),
-        html.H4("📉 Q-Q Plot of Residuals"),
-        html.Img(src=f"data:image/png;base64,{qq_img}", style={"width": "70%", "margin": "auto", "display": "block"}),
-        html.P(
-            "The Q-Q plot helps assess whether the residuals from the linear regression model are normally distributed — "
-            "a key assumption for reliable statistical inference. In this model, the residuals mostly follow the reference line, "
-            "but some deviation at the tails suggests slight non-normality. Overall, the model performs reasonably well in capturing linear trends, "
-            f"with an R² of {r2:.2f}, though it likely misses complex wildfire behavior patterns."
-        , style={"marginTop": "15px", "fontSize": "16px"}),
+            html.Div([
+                html.Div("R² Score", style=metric_title_style),
+                html.Div(f"{r2:.4f}", style=metric_value_style)
+            ], style=metric_card_style)
+        ], style=metrics_container_style),
 
         html.Hr(),
         html.H4("📈 Actual vs Predicted (Log-Transformed)"),
         html.P(
-            "This model applies multiple linear regression to predict the logarithm of acres burned in wildfire incidents. "
-            "It assumes a linear relationship between wildfire size and features such as temperature, precipitation, wind, "
-            "and seasonal timing. The log transformation is used to reduce skewness in the target variable and stabilize variance. "
-            "Although linear regression is simple and interpretable, it may struggle to capture the complex, nonlinear dynamics "
-            "of wildfire behavior without more advanced techniques or richer data.",
-        style={"marginBottom": "20px"}
-    ),
+            "The scatter plot shows predicted vs. actual values in the log scale. Ideally, predictions should closely follow "
+            "the red 1:1 line. However, we observe that the model consistently underpredicts for large incidents and overpredicts "
+            "for smaller ones. This 'flattening' indicates limited sensitivity to extreme events — a typical limitation of linear models.",
+            style={"marginBottom": "15px"}
+        ),
+
+        html.P(
+            "The R² score of 0.0445 suggests that the model explains only about 4.5% of the variation in log(acres burned). "
+            "Although the Mean Squared Error (3.72) is in the log scale, it still reflects considerable residual spread. "
+            "In contrast, using the raw (unlogged) target variable would likely worsen performance due to extreme outliers "
+            "dominating the loss function. The log transformation was essential to normalize the target and make modeling feasible, "
+            "but the linear approach still struggles to capture complex wildfire dynamics.",
+            style={"marginBottom": "20px"}
+        ),
+
         html.Img(src=f"data:image/png;base64,{scatter_img}", style={"width": "70%", "margin": "auto", "display": "block"})
     ])
+
+def get_qqplot_img():
+    import pandas as pd
+    import numpy as np
+    from sklearn.linear_model import LinearRegression
+    from sklearn.model_selection import train_test_split
+
+    df = pd.read_csv('datasets/new_merged_df.csv')
+    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
+    df["Month"] = df["Date"].dt.month
+    df["log_Precip"] = np.log1p(df["Precip (in)"])
+    df["FireSeason"] = df["Month"].apply(lambda x: 1 if 5 <= x <= 10 else 0)
+
+    df = df.drop(columns=["County", "incident_longitude", "incident_latitude", "Date"])
+    df = df.dropna(subset=["incident_acres_burned"])
+    df = df.fillna(df.mean(numeric_only=True))
+
+    q_low = df["incident_acres_burned"].quantile(0.01)
+    q_hi = df["incident_acres_burned"].quantile(0.99)
+    df = df[(df["incident_acres_burned"] > q_low) & (df["incident_acres_burned"] < q_hi)]
+
+    df["log_acres_burned"] = np.log1p(df["incident_acres_burned"])
+    y = df["log_acres_burned"]
+    X = df.drop(columns=["incident_acres_burned", "log_acres_burned"])
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    residuals = y_test - y_pred
+
+    # Generate Q-Q Plot
+    fig, ax = plt.subplots()
+    stats.probplot(residuals, dist="norm", plot=ax)
+    buf = io.BytesIO()
+    plt.tight_layout()
+    plt.savefig(buf, format="png")
+    plt.close()
+    buf.seek(0)
+    return base64.b64encode(buf.read()).decode("utf-8")
