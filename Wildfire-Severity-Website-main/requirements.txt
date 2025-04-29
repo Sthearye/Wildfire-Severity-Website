@@ -1,0 +1,14 @@
+dash
+dash-bootstrap-components
+plotly
+pandas
+numpy
+Flask
+gunicorn
+google-cloud-storage
+scikit-learn
+xgboost
+matplotlib
+seaborn
+scipy
+dash-iconify
