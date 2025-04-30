@@ -1,0 +1,5 @@
+/* Allow scrolling */
+body, html, .dash-container {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
