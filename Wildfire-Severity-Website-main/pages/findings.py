@@ -211,6 +211,8 @@ Features we believe that could really improve our analysis include:
 - How much debris was on the ground
 
 Overall, this was just the first step in a bigger journey. The problem is still urgent, and while our initial results didn’t hit the mark, it gave us valuable direction. With cleaner data and more relevant features, we believe we can build something much more predictive and impactful for the future.
+
+
             """, 
             style={"backgroundColor": COLORS["insight_bg"], "padding": "15px", "borderRadius": "10px"})
             ]),

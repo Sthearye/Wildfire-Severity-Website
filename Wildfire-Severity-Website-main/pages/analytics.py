@@ -2,18 +2,10 @@ from dash import html, dcc, register_page, callback, Output, Input
 import dash_bootstrap_components as dbc
 import pandas as pd
 
-# Importing model functions
-from models.linear_model import run_linear_model
-from models.xgboost_model import run_xgboost_model
 from models.random_forest_classifier_model import run_rf_classifier_model
 from models.stacking_regressor_model import run_stacking_regressor_model
-
-from models.statistical_analysis import (
-    get_qqplot_img,
-    generate_acf_pacf_plot,
-    generate_scatter_plots,
-    linear_regression_with_diagnostics
-)
+from models.statistical_analysis import generate_acf_pacf_plot, generate_scatter_plots
+from models.decomposition import run_time_series_decomposition  # <-- Make sure this accepts (county, feature)
 
 register_page(__name__, path="/analytics")
 
@@ -25,7 +17,19 @@ COLORS = {
     "highlight": "#FF7621"
 }
 
-county_options = sorted(pd.read_csv("datasets/cimis_merged.csv")["County"].unique())
+TEXT_STYLE = {"fontSize": "15px", "color": COLORS["text"]}
+H5_STYLE = {"fontSize": "18px", "color": COLORS["text"], "marginBottom": "10px"}
+H6_STYLE = {"fontSize": "16px", "color": COLORS["text"]}
+
+# Load dataset once for dropdowns
+df = pd.read_csv("datasets/cimis_merged.csv")
+df["Date"] = pd.to_datetime(df["Date"])
+county_options = sorted(df["County"].dropna().unique())
+feature_options = sorted([
+    'ETo (in)', 'Precip (in)', 'Sol Rad (Ly/day)', 'Avg Vap Pres (mBars)',
+    'Max Air Temp (F)', 'Min Air Temp (F)', 'Max Rel Hum (%)',
+    'Avg Wind Speed (mph)', 'Wind Run (miles)', 'Avg Soil Temp (F)'
+])
 
 layout = dbc.Container([
     dbc.ButtonGroup([
@@ -38,32 +42,29 @@ layout = dbc.Container([
         dbc.CardBody([
             dbc.Row([
                 dbc.Col([
-                    html.H5("📅 Data Collection", style={"color": COLORS["text"], "marginBottom": "10px"}),
+                    html.H5("📅 Data Collection", style=H5_STYLE),
                     html.P(
                         "Data is collected from CIMIS weather stations and CAL FIRE incident databases. "
                         "The CIMIS dataset includes temperature, humidity, wind speed, solar radiation, and precipitation. "
-                        "Wildfire incident records provide spatial and temporal burn area data."
-                        "Through the US Census, we were able to gather the population of each county from 2014-2024",
-                        style={"fontSize": "15px", "color": COLORS["text"]}
+                        "Wildfire incident records provide spatial and temporal burn area data. "
+                        "Through the US Census, we were able to gather the population of each county from 2014–2024.",
+                        style=TEXT_STYLE
                     )
                 ], md=4),
-
                 dbc.Col([
-                    html.H5("🛠️ Feature Engineering", style={"color": COLORS["text"], "marginBottom": "10px"}),
+                    html.H5("🛠️ Feature Engineering", style=H5_STYLE),
                     html.P(
-                        "Additional features such as 'FireSeason' which we assigned as in between May through October "
-                        "and temporal components like year, month, and day are derived to enrich the modeling dataset."
-                        "On top of that, we added many different lag features for all the weather for up to 7",
-                        style={"fontSize": "15px", "color": COLORS["text"]}
+                        "Additional features such as 'FireSeason' (May–October), and temporal components like year, month, and day "
+                        "are derived to enrich the dataset. We also added lag features for weather variables up to 7 days.",
+                        style=TEXT_STYLE
                     )
                 ], md=4),
-
                 dbc.Col([
-                    html.H5("🪟 Data Preprocessing", style={"color": COLORS["text"], "marginBottom": "10px"}),
+                    html.H5("🪟 Data Preprocessing", style=H5_STYLE),
                     html.P(
                         "The dataset undergoes cleaning by handling missing values, "
                         "dropping irrelevant columns, and applying log transformations to normalize skewed features.",
-                        style={"fontSize": "15px", "color": COLORS["text"]}
+                        style=TEXT_STYLE
                     )
                 ], md=4)
             ])
@@ -76,51 +77,24 @@ layout = dbc.Container([
             dbc.CardBody([
                 dbc.Row([
                     dbc.Col([
-                        html.Div([
-                            html.H6("📊 Q-Q Plot of Residuals", style={"marginTop": "20px", "color": COLORS["text"]}),
-                            html.P("This plot compares the distribution of residuals to a normal distribution. If the residuals are normally distributed, the points will fall approximately along the red line.", style={"fontSize": "13px", "color": COLORS["text"]}),
-                            html.Img(id="qqplot-img", style={"width": "100%", "borderRadius": "5px"}),
+                        html.H6("📉 Scatter Plot with Wildfire Size", style={**H6_STYLE, "marginTop": "20px"}),
+                        dcc.Dropdown(
+                            id="scatter-feature-dropdown",
+                            options=[{"label": f, "value": f} for f in [
+                                'Max Air Temp (F)', 'Min Air Temp (F)', 'Avg Wind Speed (mph)', 'Avg Soil Temp (F)', 'Weather Intensity'
+                            ]],
+                            value="Max Air Temp (F)",
+                            placeholder="Select a feature",
+                            style={"marginBottom": "15px"}
+                        ),
+                        html.Div(id="scatter-plot-container"),
 
-                            html.H6("📈 ACF/PACF Explorer", style={"marginTop": "25px", "color": COLORS["text"]}),
-                            html.P("Explore autocorrelation in weather data using ACF (overall correlation) and PACF (direct correlation) across lags.", style={"fontSize": "13px", "color": COLORS["text"]}),
-                            dcc.Dropdown(id="acf-county-dropdown", options=[{"label": c, "value": c} for c in county_options], value=county_options[0], placeholder="Select County", style={"marginBottom": "10px"}),
-                            dcc.Dropdown(id="acf-type-dropdown", options=[{"label": "ACF", "value": "ACF"}, {"label": "PACF", "value": "PACF"}], value="ACF", style={"marginBottom": "10px"}),
-                            dcc.Dropdown(id="acf-feature-dropdown", options=[{"label": f, "value": f} for f in [
-                                'ETo (in)', 'Precip (in)', 'Sol Rad (Ly/day)', 'Avg Vap Pres (mBars)',
-                                'Max Air Temp (F)', 'Min Air Temp (F)', 'Max Rel Hum (%)',
-                                'Avg Wind Speed (mph)', 'Wind Run (miles)', 'Avg Soil Temp (F)'
-                            ]], value="Max Air Temp (F)", style={"marginBottom": "10px"}),
-                            html.Div(id="acf-pacf-plot-container", style={"marginTop": "20px"}),
-
-                            html.H6("📉 Select Weather Feature for Scatter Plot:", style={"marginTop": "20px", "color": COLORS["text"]}),
-                            html.P("Visualize the relationship between selected weather features and wildfire size using a scatter plot.", style={"fontSize": "13px", "color": COLORS["text"]}),
-                            dcc.Dropdown(
-                                id="scatter-feature-dropdown",
-                                options=[{"label": f, "value": f} for f in [
-                                    'Max Air Temp (F)', 'Min Air Temp (F)', 'Avg Wind Speed (mph)', 'Avg Soil Temp (F)', 'Weather Intensity'
-                                ]],
-                                value="Max Air Temp (F)",
-                                placeholder="Select a feature",
-                                style={"marginBottom": "15px"}
-                            ),
-                            html.Div(id="scatter-plot-container"),
-
-                            html.H6("🧪 Partial Regression & Rainbow Test", style={"marginTop": "30px", "color": COLORS["text"]}),
-                            html.P("Partial regression plots the effect of one variable while holding others constant. Rainbow test checks linearity assumptions statistically.", style={"fontSize": "13px", "color": COLORS["text"]}),
-                            dcc.Dropdown(
-                                id="regression-feature-dropdown",
-                                options=[{"label": f, "value": f} for f in [
-                                    'Max Air Temp (F)', 'Min Air Temp (F)', 'Avg Wind Speed (mph)', 'Avg Soil Temp (F)', 'Weather Intensity'
-                                ]],
-                                value=['Max Air Temp (F)', 'Avg Wind Speed (mph)', 'Avg Soil Temp (F)'],
-                                multi=True,
-                                placeholder="Select features for regression",
-                                style={"marginBottom": "10px"}
-                            ),
-                            html.Img(id="partial-reg-img", style={"width": "100%", "borderRadius": "5px"}),
-                            html.P(id="rainbow-test-output", style={"marginTop": "10px"}),
-                        ])
-                    ], md=12)
+                        html.H6("📈 ACF/PACF Explorer", style={**H6_STYLE, "marginTop": "40px"}),
+                        dcc.Dropdown(id="acf-county-dropdown", options=[{"label": c, "value": c} for c in county_options], value=county_options[0], placeholder="Select County", style={"marginBottom": "10px"}),
+                        dcc.Dropdown(id="acf-type-dropdown", options=[{"label": "ACF", "value": "ACF"}, {"label": "PACF", "value": "PACF"}], value="ACF", style={"marginBottom": "10px"}),
+                        dcc.Dropdown(id="acf-feature-dropdown", options=[{"label": f, "value": f} for f in feature_options], value="Max Air Temp (F)", style={"marginBottom": "10px"}),
+                        html.Div(id="acf-pacf-plot-container", style={"marginTop": "20px"}),
+                    ])
                 ])
             ], style={"background": COLORS["card"]})
         ], className="shadow")
@@ -131,17 +105,36 @@ layout = dbc.Container([
             dbc.CardHeader("Model Results", className="h4", style={"background": COLORS["header"], "color": "white"}),
             dbc.CardBody([
                 dbc.Tabs([
-                    dbc.Tab(label="Linear Regression", children=run_linear_model()),
-                    dbc.Tab(label="XGBoost", children=run_xgboost_model()),
                     dbc.Tab(label="Random Forest Classifier", children=run_rf_classifier_model()),
                     dbc.Tab(label="Stacking Regressor", children=run_stacking_regressor_model()),
+                    dbc.Tab(label="Decomposition", children=[
+                        html.Div([
+                            html.H6("🔎 Decomposition Viewer", style=H6_STYLE),
+                            dcc.Dropdown(
+                                id="tab-decomp-county",
+                                options=[{"label": c, "value": c} for c in county_options],
+                                value=county_options[0],
+                                placeholder="Select County",
+                                style={"marginBottom": "10px"}
+                            ),
+                            dcc.Dropdown(
+                                id="tab-decomp-feature",
+                                options=[{"label": f, "value": f} for f in feature_options],
+                                value=feature_options[0],
+                                placeholder="Select Feature",
+                                style={"marginBottom": "20px"}
+                            ),
+                            html.Div(id="tab-decomp-output", style={"marginTop": "20px"})
+                        ])
+                    ])
                 ])
             ], style={"background": COLORS["card"]})
         ], className="shadow mt-4")
     ])
 ], style={"background": COLORS["bg"], "minHeight": "100vh"})
 
-# --- CALLBACKS ---
+
+# === CALLBACKS ===
 
 @callback(
     Output("scatter-plot-container", "children"),
@@ -149,32 +142,16 @@ layout = dbc.Container([
 )
 def update_scatter_plot(feature):
     if not feature:
-        return html.P("Please select a feature to view the scatter plot.")
+        return html.P("Please select a feature to view the scatter plot.", style=TEXT_STYLE)
     df = pd.read_csv("datasets/new_merged_df.csv")
     visuals = generate_scatter_plots(df, features=[feature])
     if not visuals:
-        return html.P("No data available for this feature.")
+        return html.P("No data available for this feature.", style=TEXT_STYLE)
     label, img = visuals[0]
     return html.Div([
-        html.H6(f"{label}", style={"marginTop": "15px"}),
+        html.H6(f"{label}", style={**H6_STYLE, "marginTop": "15px"}),
         html.Img(src=f"data:image/png;base64,{img}", style={"width": "100%", "borderRadius": "5px"})
     ])
-
-@callback(
-    Output("partial-reg-img", "src"),
-    Output("rainbow-test-output", "children"),
-    Output("qqplot-img", "src"),
-    Input("regression-feature-dropdown", "value")
-)
-def update_statistical_analysis(selected_features):
-    df = pd.read_csv("datasets/new_merged_df.csv")
-    diag = linear_regression_with_diagnostics(df, selected_features)
-    rainbow_msg = f"Rainbow Test p-value: {diag['rainbow_p_value']:.4f} → " + (
-        "✅ No evidence against linearity." if diag['rainbow_p_value'] > 0.05 else "⚠️ Linearity assumption may be violated."
-    )
-    partial_img = f"data:image/png;base64,{diag['partial_regression_img']}"
-    qq_img = f"data:image/png;base64,{get_qqplot_img()}"
-    return partial_img, rainbow_msg, qq_img
 
 @callback(
     Output("acf-pacf-plot-container", "children"),
@@ -184,14 +161,24 @@ def update_statistical_analysis(selected_features):
 )
 def update_acf_single_plot(county, plot_type, feature):
     if not county or not plot_type or not feature:
-        return html.P("Please select all fields.")
+        return html.P("Please select all fields.", style=TEXT_STYLE)
     img_str, error = generate_acf_pacf_plot(county, plot_type, feature)
     if error:
-        return html.P(error)
+        return html.P(error, style=TEXT_STYLE)
     return html.Div([
-        html.H6(f"{plot_type} - {feature} in {county}"),
+        html.H6(f"{plot_type} - {feature} in {county}", style=H6_STYLE),
         html.Img(src=f"data:image/png;base64,{img_str}", style={"width": "100%", "borderRadius": "5px"})
     ])
+
+@callback(
+    Output("tab-decomp-output", "children"),
+    Input("tab-decomp-county", "value"),
+    Input("tab-decomp-feature", "value")
+)
+def update_decomposition_output(county, feature):
+    if not county or not feature:
+        return html.P("Please select both a county and a feature.", style=TEXT_STYLE)
+    return run_time_series_decomposition(county, feature)
 
 @callback(
     Output("analytics-content", "style"),
