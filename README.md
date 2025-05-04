@@ -33,7 +33,7 @@ Data Collection → Cleaning and Preprocessing Data → Feature Engineering → 
 * Preprocessing Data: Filled in null values, dropped columns that were not used.
    * Removed columns with too many nulls as it was not dependable
    * Saw some null values in a few columns ( < 10)
-       *Filled in with the median
+    * Filled in with the median
 
 
 * Feature Engineering: Added lagged features, fire season, and broke down different dates for extra columns. 
