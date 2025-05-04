@@ -26,8 +26,8 @@ Data Collection → Cleaning and Preprocessing Data → Feature Engineering → 
 
 * Data Collection: Obtained datasets from CIMIS Weather Station, Cal Fire Incidents, and the US Census Bureau.
   * [CIMIS Weather](https://cimis.water.ca.gov/)
-  * [Cal Fire Incidents]https://www.fire.ca.gov/incidents
-  * [US Census]https://www.census.gov/
+  * [Cal Fire Incidents](https://www.fire.ca.gov/incidents)
+  * [US Census](https://www.census.gov/)
 
      
 * Preprocessing Data: Filled in null values, dropped columns that were not used.
@@ -116,6 +116,6 @@ Wildfire-Severity-Website/
 
 ## Authors
 
-Sokuntheary Em - [LinkedIn]https://www.linkedin.com/in/elaine-em/ - *insert email here*
+Sokuntheary Em - [LinkedIn](https://www.linkedin.com/in/elaine-em/) - *insert email here*
 
-Devin Chau - [LinkedIn]https://www.linkedin.com/in/devin-chau-66b5b2208/- chau.devin031602@gmail.com
+Devin Chau - [LinkedIn](https://www.linkedin.com/in/devin-chau-66b5b2208/)- chau.devin031602@gmail.com
