@@ -36,22 +36,25 @@ Data Collection → Cleaning and Preprocessing Data → Feature Engineering → 
     * Filled in with the median
 
 
-* Feature Engineering: Added lagged features, fire season, and broke down different dates for extra columns. 
+* Feature Engineering: Added lagged features, fire seasons, and broke down different dates for extra columns. [Dataset Folder](https://github.com/Sthearye/Wildfire-Severity-Website/blob/main/Wildfire-Severity-Website-main/datasets/new_merged_df.csv)
   * Used lagged features 7 days back to understand if the week affects fires
   * Determined fire seasons
   * Added Months, Days, and Years derived from Date
 
   
 * Modeling: Trained a Random Forest Classifier and a Stacking Regressor (combining Linear Regression, XGBoost, and Random Forest).
-  * Random Forest Classifier used to determine low, medium, or high severity
-  * Stacking Regressor used to predict the fire severity value based on the dataset
+  * Random Forest Classifier used to determine low, medium, or high severity. [Random Forest](https://github.com/Sthearye/Wildfire-Severity-Website/blob/main/Wildfire-Severity-Website-main/models/random_forest_classifier_model.py)
+  * Stacking Regressor is used to predict the fire severity value based on the dataset. [Stacking Regressor](https://github.com/Sthearye/Wildfire-Severity-Website/blob/main/Wildfire-Severity-Website-main/models/stacking_regressor_model.py)
  
     
 * Visualizations: Generated visualizations to understand the datasets
   * Chloropleth Heatmap
   * Correlation Matrix
   * Time Series with ACF and PACF
+     * The ACF and PACF were done directly on the [analytics.py page](https://github.com/Sthearye/Wildfire-Severity-Website/blob/main/Wildfire-Severity-Website-main/pages/analytics.py) 
   * Histogram of the distribution of fire frequency
+  
+  * Check out our other visualizations [Click Here](https://github.com/Sthearye/Wildfire-Severity-Website/tree/main/Wildfire-Severity-Website-main/visualizations)
 
 * Web Deployment: Deployed to Google Cloud Platform.
 
