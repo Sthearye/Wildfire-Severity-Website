@@ -57,6 +57,57 @@ Data Collection → Cleaning and Preprocessing Data → Feature Engineering → 
   * Check out our other visualizations [Click Here](https://github.com/Sthearye/Wildfire-Severity-Website/tree/main/Wildfire-Severity-Website-main/visualizations)
 
 * Web Deployment: Deployed to Google Cloud Platform.
+  * This guide walks you through deploying a Dash application on Google App Engine (GAE) using the `gcloud` CLI.
+  * Prerequisites
+
+    * A Google Cloud account
+    * Billing enabled on your Google Cloud account
+    * [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) installed
+    * Basic familiarity with Python and Git
+   
+  Step 1: Set Up a Google Cloud Project
+     1. Create a New Project
+     ```bash
+     Replace `my-dash-app` with your project ID
+     gcloud projects create my-dash-app
+     ```
+  
+     2. Link Billing Account
+     ``` bash
+     gcloud billing accounts list  # Copy the billing account ID (e.g., XXXXXX-XXXXXX-XXXXXX)
+     gcloud billing projects link my-dash-app --billing-account=XXXXXX-XXXXXX-XXXXXX
+     ```
+  
+     3. Enable App Engine Admin API
+     - Go to the Google Cloud Console.
+     - Navigate to APIs & Services > Library.
+     - Search for "App Engine Admin API" and enable it.
+
+     4. Initialize the CLI
+     ``` bash
+     gcloud init
+     ```
+  Step 2: Prepare the Dash Application
+     1. Create a Git-Managed Directory
+     ```bash
+     mkdir project_name && cd project_name
+     ```
+     2. Create the Dash App (app.py)
+     3. Create app.yaml
+     4. Create requirements
+        
+  Step 3: Deploy to Google App Engine
+     1. Deploy the App
+     ```bash
+     gcloud app deploy
+     ```
+
+     2. Access Your App
+     ```bash
+     gcloud app browse
+     ```
+  
+
 
 
 ```
@@ -119,6 +170,6 @@ Wildfire-Severity-Website/
 
 ## Authors
 
-Sokuntheary Em - [LinkedIn](https://www.linkedin.com/in/elaine-em/) - *insert email here*
+Sokuntheary Em - [LinkedIn](https://www.linkedin.com/in/elaine-em/) - stearye03@gmail.com
 
 Devin Chau - [LinkedIn](https://www.linkedin.com/in/devin-chau-66b5b2208/)- chau.devin031602@gmail.com
